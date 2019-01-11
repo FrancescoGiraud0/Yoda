@@ -1,0 +1,10 @@
+COMANDI DIREZIONE:
+
+'x' -> indietro()
+'w' -> avanti()
+'d' -> destra()
+'a' -> sinistra()
+'s' -> stops()
+'L' -> Pin 13 off
+'l' -> Pin 13 on
+'i' -> stampa: DAGU + n (inizialmente settato a 0) ed incrementa n
