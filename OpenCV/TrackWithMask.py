@@ -44,7 +44,8 @@ while(1):
     cv2.line(frame,(widthScreen//3,0),(widthScreen//3,heightScreen),(255,0,0),1)
     cv2.line(frame,(widthScreen//3 * 2,0),(widthScreen//3 * 2,heightScreen),(255,0,0),1)
 
-
+    ##
+    
     for i in range(len(conts)):
         x,y,w,h=cv2.boundingRect(conts[0]) #funzione che calcola il rettangolo per il contorno, restituise x,y,base e altezza
         cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255), 2) #comando che disegna un rettangolo dando i due vertici opposti
