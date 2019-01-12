@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 '''Animates distances and measurment quality'''
 from rplidar import RPLidar
+import sys
+import time
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.animation as animation
 
-PORT_NAME = 'COM0'
+PORT_NAME = '/dev/ttyUSB0'
 DMAX = 4000
 IMIN = 0
 IMAX = 50
@@ -29,7 +32,7 @@ def run():
 
     iterator = lidar.iter_scans()
     ani = animation.FuncAnimation(fig, update_line,
-        fargs=(iterator, line), interval=50)
+    fargs=(iterator, line), interval=50)
     plt.show()
     lidar.stop()
     lidar.disconnect()
