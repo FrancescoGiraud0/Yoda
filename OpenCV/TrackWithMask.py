@@ -8,20 +8,20 @@ def destra():
 def sinistra():
     arduino.write(b's')
 
-cap = cv2.VideoCapture(2)           #impostazione della webcam da usare
+cap = cv2.VideoCapture(0)
 kernelOpen=np.ones((5,5))
 kernelClose=np.ones((20,20))
 font=cv2.FONT_HERSHEY_SIMPLEX
-widthScreen=340                     #impostazione dimesione schermo
+widthScreen=340
 heightScreen=220
 
 while(1):
 
-    _, frame = cap.read()                               #ricezione immagine dalla webcam
-    frame=cv2.resize(frame,(widthScreen,heightScreen))   #ridimensionamento immagine
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)  
+    _, frame = cap.read()
+    frame=cv2.resize(frame,(widthScreen,heightScreen))   #ridimensiona
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     
-    sensitivity = 15                                            #impostazione del colore da seguire
+    sensitivity = 15
     lower_red_0 = np.array([0, 100, 100]) 
     upper_red_0 = np.array([sensitivity, 255, 255])
     lower_red_1 = np.array([180 - sensitivity, 100, 100]) 
@@ -41,28 +41,33 @@ while(1):
     
     cv2.drawContours(frame,conts,-1,(255,0,0),3)
 
+    cv2.line(frame,(widthScreen//3,0),(widthScreen//3,heightScreen),(255,0,0),1)
+    cv2.line(frame,(widthScreen//3 * 2,0),(widthScreen//3 * 2,heightScreen),(255,0,0),1)
+
+
     for i in range(len(conts)):
-        x,y,w,h=cv2.boundingRect(conts[0])                           #funzione che calcola il rettangolo per il contorno, restituise x,y,base e altezza
-        cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255), 2)            #comando che disegna un rettangolo dando i due vertici opposti
-        cv2.putText(frame, str(0+1),(x,y+h),font,2.,(0,255,255))     #funzione che numera il rettangolo 
-        
-        xCentroRett=x+w/2   #calcolo della x del centro e la y del centro del rettangolo appena disegnato
+        x,y,w,h=cv2.boundingRect(conts[0]) #funzione che calcola il rettangolo per il contorno, restituise x,y,base e altezza
+        cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255), 2) #comando che disegna un rettangolo dando i due vertici opposti
+        cv2.putText(frame, str(0+1),(x,y+h),font,2.,(0,255,255)) #funzione che mette un numero al rettangolo 
+        xCentroRett=x+w/2
         yCentroRett=y+h/2
-        
+
+
         print(xCentroRett,yCentroRett)
 
-        if xCentroRett <= widthScreen//3 :      #scelta della direzione da seguire in base alla posizione dell'oggetto 
+        if xCentroRett <= widthScreen//3 :
             print('sinistra()')
         elif xCentroRett >= (widthScreen//3)*2:
             print('destra()')
         elif xCentroRett > widthScreen//3 and xCentroRett < (widthScreen//3)*2 :   
-            print('centro()')
+           print('centro()')
         else:
             print('fermo()')
-
+        
+        
     res = cv2.bitwise_and(frame,frame, mask= mask)
 
-    cv2.imshow('frame',frame)       #visualizzazione delle finestre
+    cv2.imshow('frame',frame)
     cv2.imshow('mask',mask)
     cv2.imshow('res',res)
 
