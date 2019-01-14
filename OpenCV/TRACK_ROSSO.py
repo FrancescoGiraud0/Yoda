@@ -1,14 +1,24 @@
 import cv2
 import numpy as np
 import serial
+arduino = serial.Serial("/dev/ttyACM0", 9600)
+
+def avanti():
+    arduino.write(b'w')
+
+def stops():
+    arduino.write(b's')
+
+def indietro():
+    arduino.write(b'x')
 
 def destra():
     arduino.write(b'd')
 
 def sinistra():
-    arduino.write(b's')
+    arduino.write(b'a')
 
-cap = cv2.VideoCapture(2)
+cap = cv2.VideoCapture(0)
 kernelOpen=np.ones((5,5))
 kernelClose=np.ones((20,20))
 font=cv2.FONT_HERSHEY_SIMPLEX
@@ -50,22 +60,14 @@ while(1):
         print(xCentroRett,yCentroRett)
 
         if xCentroRett <= widthScreen//3 :
-            print('sinistra()')
+            sinistra()
         elif xCentroRett >= (widthScreen//3)*2:
-            print('destra()')
+            destra()
         elif xCentroRett > widthScreen//3 and xCentroRett < (widthScreen//3)*2 :   
-            print('centro()')
+            avanti()
         else:
-            print('fermo()')
+            stops()  
 
-        
-    
-
-    #x+w/2 = X centro
-    # y+h/2=Y centro
-    # 
-    # if x     
-    # Bitwise-AND mask and original image
     res = cv2.bitwise_and(frame,frame, mask= mask)
 
     cv2.imshow('frame',frame)
