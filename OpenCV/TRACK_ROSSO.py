@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import serial
 import config
+import time
 
 isConnected = True
 
@@ -12,19 +13,25 @@ except:
     print("arduino non connesso")
 
 def avanti():
-    arduino.write(b'w')        #chiamata a funzione su arduino per andare avanti 
+    arduino.write(b'w')
+    time.sleep(1)#chiamata a funzione su arduino per andare avanti 
 
 def stops():
-    arduino.write(b's')        #chiamata a funzione su arduino per fermare
+    arduino.write(b's')
+    time.sleep(1)#chiamata a funzione su arduino per fermare
 
 def indietro():
-    arduino.write(b'x')        #chiamata a funzione su arduino per andare indietro
+    arduino.write(b'x')
+    time.sleep(1)#chiamata a funzione su arduino per andare indietro
 
 def destra():
-    arduino.write(b'd')        #chiamata a funzione su arduino per girare a dx
+    arduino.write(b'd')
+    time.sleep(1)#chiamata a funzione su arduino per girare a dx
 
 def sinistra():
-    arduino.write(b'a')        #chiamata a funzione su arduino per girare a sx
+    arduino.write(b'a')
+    time.sleep(1)#chiamata a funzione su arduino per girare a sx
+
 
 cap = cv2.VideoCapture(0)
 kernelOpen=np.ones((5,5))
@@ -33,6 +40,7 @@ font=cv2.FONT_HERSHEY_SIMPLEX
 
 widthScreen= config.widthScreen                 #dimesioni schermo
 heightScreen= config.heightScreen
+central_zone = config.central_zone
 
 sensitivity = config.sensitivity
                                   #impostazioni colore
@@ -62,32 +70,32 @@ while(1):
     
     cv2.drawContours(frame,conts,-1,(255,0,0),3)
 
-    for i in range(len(conts)):
+    cv2.line(frame,(int(widthScreen * (1-central_zone)*0.5),0),(int(widthScreen * (1-central_zone)*0.5),220),(255,0,0),2)
+    cv2.line(frame,(int(widthScreen * (1 + central_zone)*0.5),0),(int(widthScreen * (1 + central_zone)*0.5),220),(255,0,0),2)
+
+
+    if len(conts) > 0:
         x,y,w,h=cv2.boundingRect(conts[0]) #funzione che calcola il rettangolo per il contorno, restituise x,y,base e altezza
         cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255), 2) #comando che disegna un rettangolo dando i due vertici opposti
         cv2.putText(frame, str(0+1),(x,y+h),font,2.,(0,255,255)) #funzione che mette un numero al rettangolo 
         xCentroRett=x+w/2
         yCentroRett=y+h/2
-        print(xCentroRett,yCentroRett)
+
 
         if(isConnected):
-            if xCentroRett <= widthScreen//3:          #confronti per chiamare funzioni per movimento del robot
-                while(xCentroRett < widthScreen//3):
-                    sinistra()
-            elif xCentroRett >= (widthScreen//3)*2: 
-                while(xCentroRett > (widthScreen//3)*2):
-                    destra()
-            elif xCentroRett > widthScreen//3 and xCentroRett < (widthScreen//3)*2:   
+            if xCentroRett <= int(widthScreen * (1-central_zone)*0.5) :          #confronti per chiamare funzioni per movimento del robot
+                sinistra()
+            elif xCentroRett >= int(widthScreen * (1 + central_zone)*0.5): 
+                destra()
+            elif xCentroRett > int(widthScreen * (1-central_zone)*0.5) and xCentroRett < int(widthScreen * (1 + central_zone)*0.5):   
                 avanti()
             else:
-                stops() 
-         
-
-    res = cv2.bitwise_and(frame,frame, mask= mask)
+                stops()  
+    else:
+        if(isConnected):
+            stops()     
 
     cv2.imshow('frame',frame)
-   # cv2.imshow('mask',mask)
-    #cv2.imshow('res',res)
 
     k = cv2.waitKey(5) & 0xFF
     if k == 27:
