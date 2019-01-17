@@ -7,30 +7,43 @@ import time
 isConnected = True
 
 try:
-    arduino = serial.Serial("/dev/ttyACM0", 9600)
+    arduino = serial.Serial("/dev/ttyACM0", 9600, timeout=50)
+    time.sleep(1)
 except:
     isConnected = False
     print("arduino non connesso")
 
 def avanti():
+    global isStopped
+    isStopped=False
     arduino.write(b'w')
-    time.sleep(1)#chiamata a funzione su arduino per andare avanti 
+    #time.sleep(0.05)#chiamata a funzione su arduino per andare avanti 
 
 def stops():
-    arduino.write(b's')
-    time.sleep(1)#chiamata a funzione su arduino per fermare
+    global isStopped
+    
+    if not isStopped:
+        arduino.write(b's')
+    isStopped=True
+    #time.sleep(0.05)#chiamata a funzione su arduino per fermare
 
 def indietro():
+    global isStopped
+    isStopped=False
     arduino.write(b'x')
-    time.sleep(1)#chiamata a funzione su arduino per andare indietro
-
+    #time.sleep(0.05)#chiamata a funzione su arduino per andare indietro
+#
 def destra():
+    global isStopped
+    isStopped=False
     arduino.write(b'd')
-    time.sleep(1)#chiamata a funzione su arduino per girare a dx
+    #time.sleep(0.05)#chiamata a funzione su arduino per girare a dx
 
 def sinistra():
+    global isStopped
+    isStopped=False
     arduino.write(b'a')
-    time.sleep(1)#chiamata a funzione su arduino per girare a sx
+    #time.sleep(0.05)#chiamata a funzione su arduino per girare a sx
 
 
 cap = cv2.VideoCapture(0)
@@ -41,6 +54,7 @@ font=cv2.FONT_HERSHEY_SIMPLEX
 widthScreen= config.widthScreen                 #dimesioni schermo
 heightScreen= config.heightScreen
 central_zone = config.central_zone
+isStopped=False
 
 sensitivity = config.sensitivity
                                   #impostazioni colore
