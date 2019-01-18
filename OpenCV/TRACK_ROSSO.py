@@ -45,6 +45,33 @@ def sinistra():
     arduino.write(b'a')
     #time.sleep(0.05)#chiamata a funzione su arduino per girare a sx
 
+def posizione(conts,frame):
+    if len(conts) > 0:
+        x,y,w,h=cv2.boundingRect(conts[0]) #funzione che calcola il rettangolo per il contorno, restituise x,y,base e altezza
+        cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255), 2) #comando che disegna un rettangolo dando i due vertici opposti
+        cv2.putText(frame, str(0+1),(x,y+h),font,2.,(0,255,255)) #funzione che mette un numero al rettangolo 
+        xCentroRett=x+w/2
+        yCentroRett=y+h/2
+
+        if(isConnected):
+            if xCentroRett <= int(widthScreen * (1-central_zone)*0.5) :          #confronti per chiamare funzioni per movimento del robot
+                sinistra()
+            elif xCentroRett >= int(widthScreen * (1 + central_zone)*0.5): 
+                destra()
+            elif xCentroRett > int(widthScreen * (1-central_zone)*0.5) and xCentroRett < int(widthScreen * (1 + central_zone)*0.5):   
+                avanti()
+            else:
+                stops()  
+    else:
+        if(isConnected):
+            stops()
+
+def draw(frame,central_zone):
+     cv2.drawContours(frame,conts,-1,(255,0,0),3)
+
+    cv2.line(frame,(int(widthScreen * (1-central_zone)*0.5),0),(int(widthScreen * (1-central_zone)*0.5),220),(255,0,0),2)
+    cv2.line(frame,(int(widthScreen * (1 + central_zone)*0.5),0),(int(widthScreen * (1 + central_zone)*0.5),220),(255,0,0),2)
+
 
 cap = cv2.VideoCapture(0)
 kernelOpen=np.ones((5,5))
@@ -82,32 +109,10 @@ while(1):
 
     im,conts,h=cv2.findContours(maskFinal.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE) #restituisce l'immagine, i contorni e le liste delle altezze
     
-    cv2.drawContours(frame,conts,-1,(255,0,0),3)
+    draw(frame,central_zone)
 
-    cv2.line(frame,(int(widthScreen * (1-central_zone)*0.5),0),(int(widthScreen * (1-central_zone)*0.5),220),(255,0,0),2)
-    cv2.line(frame,(int(widthScreen * (1 + central_zone)*0.5),0),(int(widthScreen * (1 + central_zone)*0.5),220),(255,0,0),2)
-
-
-    if len(conts) > 0:
-        x,y,w,h=cv2.boundingRect(conts[0]) #funzione che calcola il rettangolo per il contorno, restituise x,y,base e altezza
-        cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255), 2) #comando che disegna un rettangolo dando i due vertici opposti
-        cv2.putText(frame, str(0+1),(x,y+h),font,2.,(0,255,255)) #funzione che mette un numero al rettangolo 
-        xCentroRett=x+w/2
-        yCentroRett=y+h/2
-
-
-        if(isConnected):
-            if xCentroRett <= int(widthScreen * (1-central_zone)*0.5) :          #confronti per chiamare funzioni per movimento del robot
-                sinistra()
-            elif xCentroRett >= int(widthScreen * (1 + central_zone)*0.5): 
-                destra()
-            elif xCentroRett > int(widthScreen * (1-central_zone)*0.5) and xCentroRett < int(widthScreen * (1 + central_zone)*0.5):   
-                avanti()
-            else:
-                stops()  
-    else:
-        if(isConnected):
-            stops()     
+    posizione(conts,frame)
+         
 
     cv2.imshow('frame',frame)
 
