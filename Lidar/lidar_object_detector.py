@@ -25,16 +25,16 @@ def find_obstacles(measurements_list):
         
         if measure_distance <= config.MAX_DISTANCE and measure_distance >= config.MIN_DISTANCE and measure_power >= config.QUALITY:
             #right
-            if measure_angle > config.ANGLE / 2 and measure_angle <= config.RIGHT:
+            if measure_angle > config.RIGHT / 2 and measure_angle <= config.RIGHT:
                 ob_dict["right"] = True
             #left
-            elif measure_angle >= config.LEFT and measure_angle<(config.LEFT+(config.ANGLE/2)):
+            elif measure_angle >= config.LEFT and measure_angle < (360 -(config.RIGHT/2)):
                 ob_dict["left"] = True
             #center
-            elif measure_angle >= config.CENTER and measure_angle <= config.ANGLE/2:
+            elif measure_angle >= config.CENTER and measure_angle <= config.RIGHT/2:
                 ob_dict["center"] = True
             #center
-            elif measure_angle >= ((config.CENTER%360+360)-(config.ANGLE/2)) and measure_angle <= ((config.CENTER%360)+360):
+            elif measure_angle >= (360 -(config.RIGHT/2)) and measure_angle <= 360:
                 ob_dict["center"] = True
         
             ret_dict = update_obstacles(ret_dict, ob_dict)
@@ -88,17 +88,19 @@ def main():
     lidar = RPLidar(config.LIDAR_PORT_NAME)
     time.sleep(5)
     measurments_list = []
-    for measurment in lidar.iter_measurments(max_buf_meas = config.MAX_BUF_MEAS):
-         measurments_list.append(measurment)
-         if len(measurments_list) >= config.NUMBER_MEASURE:
-            obstacles = find_obstacles(measurments_list)
-            motors_controller(obstacles)
-            obstacles.clear()
-            measurments_list.clear()
-
-    lidar.stop()
-    lidar.stop_motor()
-    lidar.disconnect()
-
+    try:
+        for measurment in lidar.iter_measurments(max_buf_meas = config.MAX_BUF_MEAS):
+             measurments_list.append(measurment)
+             if len(measurments_list) >= config.NUMBER_MEASURE:
+                obstacles = find_obstacles(measurments_list)
+                motors_controller(obstacles)
+                obstacles.clear()
+                measurments_list.clear()
+                
+    except KeyboardInterrupt:
+        lidar.stop()
+        lidar.stop_motor()
+        lidar.disconnect()
+        stops()
 
 main()
