@@ -1,6 +1,7 @@
-# Project Title
+# Project Hunter 
 
-One Paragraph of project description goes here
+One Paragraph of project description goes here.
+An intelligent robot ready to discover the world.
 
 ## Getting Started
 
@@ -8,7 +9,11 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-What things you need to install the software and how to install them
+You will need a basic knowledge about Python language.
+
+Raspberry Pi 3 or more
+Arduino UNO
+Lidar A2
 
 ```
 Give examples
