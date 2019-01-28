@@ -26,19 +26,19 @@ Give examples
 
 You will need to install too:
 
-*Opencv
+* Opencv
 
 ```
 https://opencv.org/releases.html
 ```
 
-*Lidar
+* Lidar
 
 ```
 https://github.com/SkoltechRobotics/rplidar
 ```
 
-*Arduino
+* Arduino
 
 ```
 Give examples
