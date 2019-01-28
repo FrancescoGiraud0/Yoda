@@ -1,6 +1,7 @@
 # Project Hunter 
 
 One Paragraph of project description goes here.
+
 An intelligent robot ready to discover the world.
 
 ## Getting Started
@@ -12,7 +13,9 @@ These instructions will get you a copy of the project up and running on your loc
 You will need a basic knowledge about Python language.
 
 Raspberry Pi 3 or more
+
 Arduino UNO
+
 Lidar A2
 
 ```
@@ -21,7 +24,29 @@ Give examples
 
 ### Installing
 
-A step by step series of examples that tell you how to get a development env running
+You will need to install too:
+
+*Opencv
+
+```
+https://opencv.org/releases.html
+```
+
+*Lidar
+
+```
+https://github.com/SkoltechRobotics/rplidar
+```
+
+*Arduino
+
+```
+Give examples
+```
+
+
+
+
 
 Say what the step will be
 
