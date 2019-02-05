@@ -102,10 +102,10 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* **Gabriele Parola** - [GoshuSan](https://github.com/GoshuSan)
 * **Francesco Giraudo** - [FrancescoGiraud0](https://github.com/FrancescoGiraud0)
 * **Matteo Allemandi** - [MatteoAllemandi](https://github.com/MatteoAllemandi)
 * **Nicolò Guerra** - [NikoWar](https://github.com/NikoWar)
+* **Gabriele Parola** - [GoshuSan](https://github.com/GoshuSan)
 
 See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
 
