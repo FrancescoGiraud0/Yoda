@@ -108,7 +108,11 @@ while(1):
     else:
         if(isConnected):
             stops()     
-
+    
+    
+    cont=cont+1
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.putText(frame,str(cont),(10,25), font, 1,(255,255,255),1,cv2.LINE_AA)
     cv2.imshow('frame',frame)
 
     k = cv2.waitKey(5) & 0xFF
