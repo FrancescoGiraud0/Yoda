@@ -22,19 +22,19 @@ You will need a basic knowledge about:
 
 You will need to install too:
 
-* Opencv
+* Opencv 
 
 ```
 https://opencv.org/releases.html
 ```
 
-* Lidar
+* Lidar 
 
 ```
 https://github.com/SkoltechRobotics/rplidar
 ```
 
-* Arduino
+* Arduino 
 
 ```
 https://www.arduino.cc/en/main/software
