@@ -1,12 +1,10 @@
-# Project Hunter 
+# Y.O.D.A  
 
-One Paragraph of project description goes here.
-
-An intelligent robot ready to discover the world.
+YODA Object Dectector and Avoider
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+This robot is able to follow and track coloful objects and avoid obstacles on his way.
 
 ### Prerequisites
 
@@ -41,7 +39,7 @@ https://github.com/SkoltechRobotics/rplidar
 * Arduino
 
 ```
-Give examples
+https://www.arduino.cc/en/main/software
 ```
 
 
