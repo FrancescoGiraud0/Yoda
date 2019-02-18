@@ -8,17 +8,15 @@ This robot is able to follow and track coloful objects and avoid obstacles on hi
 
 ### Prerequisites
 
-You will need a basic knowledge about Python language.
+You will need a basic knowledge about:
 
-Raspberry Pi 3 or more
+* Python language.
 
-Arduino UNO
+* Raspberry Pi 3 or more
 
-Lidar A2
+* Arduino UNO
 
-```
-Give examples
-```
+* Lidar A2
 
 ### Installing
 
