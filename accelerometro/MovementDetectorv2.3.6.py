@@ -1,15 +1,13 @@
 '''
         Detect movements.
-		USAGE: python MovementDetector.py
+        USAGE: python MovementDetector.py
 '''
-import smbus			#import SMBus module of I2C
+import smbus            #import SMBus module of I2C
 import time         
 import collections
 import numpy as np
 import csv
 import sys
-import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
 import config
 import socket
 
@@ -29,23 +27,23 @@ GYRO_ZOUT_H  = 0x47
 
 
 def MPU_Init():
-	#write to sample rate register
-	bus.write_byte_data(Device_Address, SMPLRT_DIV, 7)
-	
-	#Write to power management register
-	bus.write_byte_data(Device_Address, PWR_MGMT_1, 1)
-	
-	#Write to Configuration register
-	bus.write_byte_data(Device_Address, CONFIG, 0)
-	
-	#Write to Gyro configuration register
-	bus.write_byte_data(Device_Address, GYRO_CONFIG, 24)
-	
-	#Write to interrupt enable register
-	bus.write_byte_data(Device_Address, INT_ENABLE, 1)
+    #write to sample rate register
+    bus.write_byte_data(Device_Address, SMPLRT_DIV, 7)
+    
+    #Write to power management register
+    bus.write_byte_data(Device_Address, PWR_MGMT_1, 1)
+    
+    #Write to Configuration register
+    bus.write_byte_data(Device_Address, CONFIG, 0)
+    
+    #Write to Gyro configuration register
+    bus.write_byte_data(Device_Address, GYRO_CONFIG, 24)
+    
+    #Write to interrupt enable register
+    bus.write_byte_data(Device_Address, INT_ENABLE, 1)
 
 def read_raw_data(addr):
-	#Accelero and Gyro value are 16-bit
+    #Accelero and Gyro value are 16-bit
     high = bus.read_byte_data(Device_Address, addr)
     low = bus.read_byte_data(Device_Address, addr+1)
     
@@ -58,121 +56,82 @@ def read_raw_data(addr):
     return value
 
 
-
-bus = smbus.SMBus(1) 	# or bus = smbus.SMBus(0) for older version boards
+bus = smbus.SMBus(1)    # or bus = smbus.SMBus(0) for older version boards
 Device_Address = 0x68   # MPU6050 device address
 
 MPU_Init()
 
-LenFifo = config.LenFifo
-Athr = config.Athr
 tCycle = config.tCycle
-tDelay = config.tDelay
-ricorrenze = config.ricorrenze
-sogliaRic = config.sogliaRic
-minMovRec = config.minMovRec
+nCalibrationCycle=config.nCalibrationCycle
+nConvertX=config.nConvertX
+nConvertY=config.nConvertY
+nConvertZ=config.nConvertZ
+#while di calibrazione
+counter = 0
+#inizializzazione variabili
 
-AxFifo = collections.deque(LenFifo*[0], LenFifo)
-AyFifo = collections.deque(LenFifo*[0], LenFifo)
-AzFifo = collections.deque(LenFifo*[0], LenFifo)
-GxFifo = collections.deque(LenFifo*[0], LenFifo)
-GyFifo = collections.deque(LenFifo*[0], LenFifo)
-GzFifo = collections.deque(LenFifo*[0], LenFifo)
-MvFifo = collections.deque(LenFifo*[0], LenFifo)
+averageAccX=0.0
+averageAccY=0.0
+averageAccZ=0.0
 
-#Model training
-print 'Training AI model'
-n_col = LenFifo * 6 
-train_data = pd.read_csv('movements.csv', index_col=0, header=None)
-X_train = train_data.iloc[:,0:n_col].values
-y_train = train_data.iloc[:,n_col].values
+while counter < nCalibrationCycle:
+    #print 'Reading Data of Gyroscope and Accelerometer'
+    #Read Accelerometer raw value
+    acc_x = read_raw_data(ACCEL_XOUT_H)
+    acc_y = read_raw_data(ACCEL_YOUT_H)
+    acc_z = read_raw_data(ACCEL_ZOUT_H)
 
-algorithm = RandomForestClassifier(n_estimators=100, random_state=0) #max_depth=10,
-algorithm.fit(X_train, y_train)
-print 'AI model trained'
+    averageAccX=averageAccX+acc_x
+    averageAccY=averageAccY+acc_y
+    averageAccZ=averageAccZ+acc_z
+    
+    counter=counter+1
+    time.sleep(tCycle)
+    
 
+averageAccX=averageAccX/config.nCalibrationCycle
+averageAccY=averageAccY/config.nCalibrationCycle
+averageAccZ=averageAccZ/config.nCalibrationCycle
 
-
-
-
-print "Inizio client"
-
-
-host = '192.168.1.192'
-port = 1026
-countGen = 0
+Vx=0.0
+Vy=0.0
+Vz=0.0
+spazioPercorsoX=0.0
+spazioPercorsoY=0.0
+spazioPercorsoZ=0.0
 
 while True:
-    #sock.bind((host, port))
-    #sock.listen(1)
+    #Read Accelerometer raw value
+    acc_x = read_raw_data(ACCEL_XOUT_H)
+    acc_y = read_raw_data(ACCEL_YOUT_H)
+    acc_z = read_raw_data(ACCEL_ZOUT_H)
+    
+    #Full scale range +/- 250 degree/C as per sensitivity scale factor
+    Ax = (acc_x-averageAccX)/16384.0
+    Vx = Ax*config.tCycle
+    
+    spazioPercorsoX=Vx*config.tCycle+spazioPercorsoX
 
-    #c, add = sock.accept()
-    count = 0
-    volte = 0 
-    while True:
-        #print 'Reading Data of Gyroscope and Accelerometer'
-        #Read Accelerometer raw value
-        acc_x = read_raw_data(ACCEL_XOUT_H)
-        acc_y = read_raw_data(ACCEL_YOUT_H)
-        acc_z = read_raw_data(ACCEL_ZOUT_H)
-	
-	    #Read Gyroscope raw value
-        gyro_x = read_raw_data(GYRO_XOUT_H)
-        gyro_y = read_raw_data(GYRO_YOUT_H)
-        gyro_z = read_raw_data(GYRO_ZOUT_H)
-	
-	    #Full scale range +/- 250 degree/C as per sensitivity scale factor
-        Ax = acc_x/16384.0
-        Ay = acc_y/16384.0
-        Az = acc_z/16384.0
+    Ay = (acc_y-averageAccY)/16384.0
+    Vy = Ay*config.tCycle
+    
+    spazioPercorsoY=Vy*config.tCycle+spazioPercorsoY
 
-        Gx = gyro_x/131.0
-        Gy = gyro_y/131.0
-        Gz = gyro_z/131.0
+    Az = (acc_z-averageAccZ)/16384.0
+    Vz = Az*config.tCycle
+    
+    spazioPercorsoZ=Vz*config.tCycle+spazioPercorsoZ
 
-        AxFifo.append(Ax)
-        AyFifo.append(Ay)
-        AzFifo.append(Az)
-        GxFifo.append(Gx)
-        GyFifo.append(Gy)
-        GzFifo.append(Gz)
+    print("Asse x %f (m/s) ", Vx*nConvertX)
+    
+    print("Asse y %f (m/s) ", Vy*nConvertY)
+    
+    print("Asse z %f (m/s) ", Vz*nConvertZ)
+    
+    print("Spazio percorso %f (x)", spazioPercorsoX*nConvertX)
+    
+    print("Spazio percorso %f (y)", spazioPercorsoY*nConvertY)
+    
+    print("Spazio percorso %f (z)", spazioPercorsoZ*nConvertZ)
 
-        movement_detected = (np.abs(AxFifo[LenFifo-1]-AxFifo[LenFifo-2])>Athr) | (np.abs(AyFifo[LenFifo-1]-AyFifo[LenFifo-2])>Athr) | (np.abs(AzFifo[LenFifo-1]-AzFifo[LenFifo-2])>Athr)
-
-        if movement_detected:
-            count += 1
-            countGen += 1
-            X = np.array(list(AxFifo) + list(AyFifo) + list(AzFifo) + list(GxFifo) + list(GyFifo) + list(GzFifo)).reshape(-1,n_col)
-            y_predict = algorithm.predict(X)
-            predict_proba = algorithm.predict_proba(X)
-            print y_predict
-		    #print ('Detected movement %d, probabilities :' % y_predict) + str(predict_proba)
-            MvFifo.append(y_predict)
-            if (count > minMovRec) and (countGen > LenFifo):
-                #print str(MvFifo[LenFifo - 1]) 
-                for x in MvFifo:
-                    v = x[0] - 1
-                    #print v
-                    #print ricorrenze
-                    ricorrenze[v] += 1
-                        
-                massimo = max(ricorrenze)
-                numMax = ricorrenze.index(massimo)
-                if numMax != 5 and massimo >= sogliaRic:
-                    toSend = (ricorrenze.index(massimo)) + 1
-                    print toSend
-                    sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)    
-                    sock.connect((host, port))
-                    sock.send(str(toSend))
-                    count = 0
-                    for i,r in enumerate(ricorrenze):
-                        ricorrenze[i] = 0
-                    sock.close()
-                    time.sleep(tDelay)
-
-                '''else:
-                    print "999"
-                    c.send("999") '''
-                
-	    time.sleep(tCycle)
-close(csvfile)
+    time.sleep(tCycle)
