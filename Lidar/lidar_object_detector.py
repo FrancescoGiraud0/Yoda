@@ -88,6 +88,7 @@ def main():
     lidar = RPLidar(config.LIDAR_PORT_NAME)
     time.sleep(5)
     measurments_list = []
+
     try:
         for measurment in lidar.iter_measurments(max_buf_meas = config.MAX_BUF_MEAS):
              measurments_list.append(measurment)
