@@ -8,18 +8,15 @@ MIN_DISTANCE = 100
 MAX_DISTANCE = 350
 QUALITY = 13
 MAX_BUF_MEAS = 500
-NUMBER_MEASURE = 100
+NUMBER_MEASURE = 600
+
+FREQ_COMMANDS = 0.1
 
 #OpenCv configuration
 
-#dimesioni schermo
-widthScreen=340                 
-heightScreen=220
-
+#dimensioni schermo
+widthScreen=170
+heightScreen=110
 sensitivity = 10
+central_zone = 0.33
 
-central_zone = 0.2
-
-#commandsTable for motorsController
-
-FREQ_COMMANDS = 0.1

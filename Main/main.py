@@ -16,15 +16,15 @@ def update_obstacles(obstacles, ob):
     return obstacles
 
 def find_obstacles(measurements_list):
-    
+
     ret_dict= {"left": False, "center": False, "right": False}
-    
+
     for measure_tuple in measurements_list:
-        
+
         ob_dict = {"left": False, "center": False, "right": False}
-        
+
         measure_bool, measure_power, measure_angle, measure_distance = measure_tuple
-        
+
         if measure_distance <= config.MAX_DISTANCE and measure_distance >= config.MIN_DISTANCE and measure_power >= config.QUALITY:
             #right
             if measure_angle > config.RIGHT / 2 and measure_angle <= config.RIGHT:
@@ -38,55 +38,53 @@ def find_obstacles(measurements_list):
             #center
             elif measure_angle >= (360 -(config.RIGHT/2)) and measure_angle <= 360:
                 ob_dict["center"] = True
-        
+
             ret_dict = update_obstacles(ret_dict, ob_dict)
-        
+
     return ret_dict
 
 def avanti():
     global timeCommand
-    
+
     if time.clock() - timeCommand > config.FREQ_COMMANDS:
         arduino.write(b'w')
-        timeCommand = time.clock();
-    
-        
+        timeCommand = time.clock()
+
 def stops():
+
     global timeCommand
-    
-    if time.clock() - timeCommand > 0:
+
+    if time.clock() - timeCommand > config.FREQ_COMMANDS:
         arduino.write(b's')
-        timeCommand = time.clock();
+        timeCommand = time.clock()
 
 def indietro():
     global timeCommand
-    
+
     if time.clock() - timeCommand > config.FREQ_COMMANDS:
         arduino.write(b'x')
-        timeCommand = time.clock();
-    
+        timeCommand = time.clock()
+
 def destra():
     global timeCommand
-    
+
     if time.clock() - timeCommand > config.FREQ_COMMANDS:
         arduino.write(b'd')
-        timeCommand = time.clock();
-    
+        timeCommand = time.clock()
+
 def sinistra():
     global timeCommand
-    
+
     if time.clock() - timeCommand > config.FREQ_COMMANDS:
         arduino.write(b'a')
-        timeCommand = time.clock();
+        timeCommand = time.clock()
 
-def trackedObjectDirection(cap, obstacles):
+def trackedObjectDirection(frame, obstacles):
     attributes = {"left": False, "right": False, "center": False}  #dictionary that contain the value to return
 
-    _, frame = cap.read()
-    frame=cv2.resize(frame,(widthScreen,heightScreen))   #image resize
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    mask_0 = cv2.inRange(hsv, lower_red_0 , upper_red_0)        
+    mask_0 = cv2.inRange(hsv, lower_red_0 , upper_red_0)
     mask_1 = cv2.inRange(hsv, lower_red_1 , upper_red_1 )
 
     mask = cv2.bitwise_or(mask_0, mask_1)
@@ -105,12 +103,14 @@ def trackedObjectDirection(cap, obstacles):
 
     for direction, boolean in obstacles.items():
         if direction == "left" and boolean:
-            cv2.rectangle(frame,(0,heightScreen),(int(widthScreen/3), 0),(0,255,0), 2)
+            cv2.line(frame, (0, heightScreen), (int(widthScreen/3),0), (0,0,255), 2)
+            cv2.line(frame, (0,0), (int(widthScreen/3), heightScreen), (0,0,255), 2)
         elif direction == "center" and boolean:
-            cv2.rectangle(frame,(int(widthScreen/3),heightScreen),(int(widthScreen/3)*2, 0),(0,255,0), 2)
+            cv2.line(frame, (int(widthScreen/3),heightScreen), (int(widthScreen/3)*2, 0), (0,0,255), 2)
+            cv2.line(frame, (int(widthScreen/3),0), (int(widthScreen/3)*2, heightScreen), (0,0,255), 2)
         elif direction == "right" and boolean:
-            triangle_cnt = np.array([(int(widthScreen/3)*2,heightScreen),(widthScreen, heightScreen), int(widthScreen/6)*5, 0])
-            cv2.rectangle(frame,(int(widthScreen/3)*2,heightScreen),(widthScreen, 0),(0,255,0), 2)
+            cv2.line(frame, (int(widthScreen/3)*2,heightScreen),(widthScreen, 0), (0,0,255), 2)
+            cv2.line(frame, (int(widthScreen/3)*2,0), (widthScreen, heightScreen), (0,0,255), 2)
 
     if len(conts) > 0:
         x,y,w,h=cv2.boundingRect(conts[0]) #this method return the x,y, weight and height
@@ -121,15 +121,14 @@ def trackedObjectDirection(cap, obstacles):
 
         if xMiddleRect <= int(widthScreen * (1-central_zone)*0.5) :    #conditions to moves the robot
             attributes = {"left": True, "center": False, "right": False}
-        elif xMiddleRect >= int(widthScreen * (1 + central_zone)*0.5): 
+        elif xMiddleRect >= int(widthScreen * (1 + central_zone)*0.5):
             attributes = {"left": False, "center": False, "right": True}
-        elif xMiddleRect > int(widthScreen * (1-central_zone)*0.5) and xMiddleRect < int(widthScreen * (1 + central_zone)*0.5):   
+        elif xMiddleRect > int(widthScreen * (1-central_zone)*0.5) and xMiddleRect < int(widthScreen * (1 + central_zone)*0.5):
             attributes = {"left": False, "center": True,"right": False}
-       
 
-    return attributes,frame
+    return attributes
 
-#Generate a string from a dictionary bitLeft+bitCenter+bitRight 
+#Generate a string from a dictionary bitLeft+bitCenter+bitRight
 def convert(dictionary):
     retString = ""
 
@@ -137,7 +136,7 @@ def convert(dictionary):
         retString+="1"
     else :
         retString+="0"
-    
+
     if dictionary["center"] == True :
         retString+="1"
     else :
@@ -157,39 +156,41 @@ def main():
     lidar = RPLidar(config.LIDAR_PORT_NAME)
     time.sleep(5)
     measurments_list = []
+    obstacles = {"left": False, "center": False, "right": False}
 
     commandSent = " "
 
     for measurment in lidar.iter_measurments(max_buf_meas = config.MAX_BUF_MEAS):
         measurments_list.append(measurment)
+        
         if len(measurments_list) >= config.NUMBER_MEASURE:
+            _, frame = cap.read()
+            frame = cv2.resize(frame,(widthScreen,heightScreen))   #image
             obstacles = find_obstacles(measurments_list)
-            results, frame = trackedObjectDirection(cap, obstacles)
+            results = trackedObjectDirection(frame, obstacles)
             commandsTable[convert(results)][convert(obstacles)]()
-            results.clear()
-            obstacles.clear()
             measurments_list.clear()
             cv2.imshow("camera",frame)
             k = cv2.waitKey(5) & 0xFF
             if k==27:
                 break
-            
+
     cv2.destroyAllWindows()
     lidar.stop()
     lidar.stop_motor()
     lidar.disconnect()
     stops()
 
-commandsTable = { "000": 
+commandsTable = { "000":
                     { "000":stops, "001":stops,"010":stops, "011":stops,
                       "100":stops, "101":stops,"110":stops, "111":stops },
-                  "001": 
+                  "001":
                     { "000":destra, "001":stops,"010":destra, "011":stops,
                       "100":destra, "101":stops,"110":destra, "111":stops },
-                  "010": 
+                  "010":
                     { "000":avanti, "001":avanti,"010":stops, "011":stops,
                       "100":avanti, "101":avanti,"110":stops, "111":stops },
-                  "100": 
+                  "100":
                     { "000":sinistra, "001":sinistra,"010":sinistra, "011":sinistra,
                       "100":stops, "101":stops,"110":stops, "111":stops }
                 }
@@ -197,16 +198,16 @@ commandsTable = { "000":
 timeCommand = 0.0
 
 cap = cv2.VideoCapture(0)
-    
+
 kernelOpen=np.ones((5,5))
 kernelClose=np.ones((20,20))
 font=cv2.FONT_HERSHEY_SIMPLEX
 
 sensitivity = config.sensitivity    #color track settings
 
-lower_red_0 = np.array([0, 100, 100]) 
+lower_red_0 = np.array([0, 100, 100])
 upper_red_0 = np.array([sensitivity, 255, 255])
-lower_red_1 = np.array([180 - sensitivity, 100, 100]) 
+lower_red_1 = np.array([180 - sensitivity, 100, 100])
 upper_red_1 = np.array([180, 255, 255])
 widthScreen= config.widthScreen      #screen size
 heightScreen= config.heightScreen
