@@ -1,7 +1,7 @@
 # Y.O.D.A  
 
 
-![alt text](http://url/to/img.png)
+![](https://github.com/FrancescoGiraud0/Yoda/blob/master/Wiki/img/Logo.png)
 YODA Object Dectector and Avoider
 
 ## Getting Started
