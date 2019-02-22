@@ -1,7 +1,8 @@
 # Y.O.D.A  
+<p align="right">
+  <img src="https://github.com/FrancescoGiraud0/Yoda/blob/master/Wiki/img/Logo.png" width="350" title="">
+</p>
 
-
-![](https://github.com/FrancescoGiraud0/Yoda/blob/master/Wiki/img/Logo.png)
 YODA Object Dectector and Avoider
 
 ## Getting Started
