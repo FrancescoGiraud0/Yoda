@@ -6,6 +6,8 @@ import numpy as np
 import cv2
 from rplidar import RPLidar
 import config
+import collections
+import smbus
 
 arduino = serial.Serial(config.ARDUINO_PORT_NAME ,9600)
 
@@ -79,13 +81,15 @@ def sinistra():
         arduino.write(b'a')
         timeCommand = time.clock()
 
-def trackedObjectDirection(frame, obstacles):
+def trackedObjectDirection(frame, obstacles, valAcc_x, valAcc_y, valAcc_z):
     attributes = {"left": False, "right": False, "center": False}  #dictionary that contain the value to return
+
+    outString = "acc_x="+str(0.003)+" acc_y="+str(0.002)+" acc_z="+str(0.001)
 
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     mask_0 = cv2.inRange(hsv, lower_red_0 , upper_red_0)
-    mask_1 = cv2.inRange(hsv, lower_red_1 , upper_red_1 )
+    mask_1 = cv2.inRange(hsv, lower_red_1 , upper_red_1)
 
     mask = cv2.bitwise_or(mask_0, mask_1)
 
@@ -100,7 +104,8 @@ def trackedObjectDirection(frame, obstacles):
 
     cv2.line(frame,(int(widthScreen * (1-central_zone)*0.5),0),(int(widthScreen * (1-central_zone)*0.5),220),(255,0,0),2)
     cv2.line(frame,(int(widthScreen * (1 + central_zone)*0.5),0),(int(widthScreen * (1 + central_zone)*0.5),220),(255,0,0),2)
-
+    cv2.putText(frame, outString, (int(widthScreen/3)*2,heightScreen), cv2.FONT_HERSHEY_SIMPLEX, 2.0,(0,255,255))
+    
     for direction, boolean in obstacles.items():
         if direction == "left" and boolean:
             cv2.line(frame, (0, heightScreen), (int(widthScreen/3),0), (0,0,255), 2)
@@ -152,22 +157,83 @@ def convert(dictionary):
 def motors_controller(obstacles, results):
         commandsTable[results][obstacles]
 
+def MPU_Init():
+        #write to sample rate register
+        bus.write_byte_data(Device_Address, SMPLRT_DIV, 7)
+        
+        #Write to power management register
+        bus.write_byte_data(Device_Address, PWR_MGMT_1, 1)
+        
+        #Write to Configuration register
+        bus.write_byte_data(Device_Address, CONFIG, 0)
+        
+        #Write to Gyro configuration register
+        bus.write_byte_data(Device_Address, GYRO_CONFIG, 24)
+        
+        #Write to interrupt enable register
+        bus.write_byte_data(Device_Address, INT_ENABLE, 1)
+
+def read_raw_data(addr):
+    #Accelero and Gyro value are 16-bit
+    high = bus.read_byte_data(Device_Address, addr)
+    low = bus.read_byte_data(Device_Address, addr+1)
+        
+    #concatenate higher and lower value
+    value = ((high << 8) | low)
+            
+    #to get signed value from mpu6050
+    if(value > 32768):
+        value = value - 65536
+    return value
+
 def main():
+    #MPU calibration
+
+    #while di calibrazione
+    counter = 0
+
+    #inizializzazione variabili
+    averageAccX=0.0
+    averageAccY=0.0
+    averageAccZ=0.0
+
+    while counter < nCalibrationCycle:
+        #print 'Reading Data of Gyroscope and Accelerometer'
+        #Read Accelerometer raw value
+        acc_x = read_raw_data(ACCEL_XOUT_H)
+        acc_y = read_raw_data(ACCEL_YOUT_H)
+        acc_z = read_raw_data(ACCEL_ZOUT_H)
+
+        averageAccX=averageAccX+acc_x
+        averageAccY=averageAccY+acc_y
+        averageAccZ=averageAccZ+acc_z
+        
+        counter=counter+1
+        time.sleep(tCycle)
+
     lidar = RPLidar(config.LIDAR_PORT_NAME)
     time.sleep(5)
     measurments_list = []
     obstacles = {"left": False, "center": False, "right": False}
 
+    timerMPU = time.clock()
+
     commandSent = " "
 
     for measurment in lidar.iter_measurments(max_buf_meas = config.MAX_BUF_MEAS):
         measurments_list.append(measurment)
-        
+        #acceleration read
+        acc_x = read_raw_data(ACCEL_XOUT_H)
+        acc_y = read_raw_data(ACCEL_YOUT_H)
+        acc_z = read_raw_data(ACCEL_ZOUT_H)
+        valAcc_x = acc_x - averageAccX
+        valAcc_y = acc_y - averageAccY
+        valAcc_z = acc_z - averageAccZ
         if len(measurments_list) >= config.NUMBER_MEASURE:
             _, frame = cap.read()
             frame = cv2.resize(frame,(widthScreen,heightScreen))   #image
             obstacles = find_obstacles(measurments_list)
-            results = trackedObjectDirection(frame, obstacles)
+            results = trackedObjectDirection(frame, obstacles, valAcc_x, valAcc_y, valAcc_z)
             commandsTable[convert(results)][convert(obstacles)]()
             measurments_list.clear()
             cv2.imshow("camera",frame)
@@ -194,6 +260,30 @@ commandsTable = { "000":
                     { "000":sinistra, "001":sinistra,"010":sinistra, "011":sinistra,
                       "100":stops, "101":stops,"110":stops, "111":stops }
                 }
+
+#some MPU6050 Registers and their Address
+PWR_MGMT_1   = config.PWR_MGMT_1
+SMPLRT_DIV   = config.SMPLRT_DIV
+CONFIG       = config.CONFIG
+GYRO_CONFIG  = config.GYRO_CONFIG
+INT_ENABLE   = config.INT_ENABLE
+ACCEL_XOUT_H = config.ACCEL_XOUT_H
+ACCEL_YOUT_H = config.ACCEL_YOUT_H
+ACCEL_ZOUT_H = config.ACCEL_ZOUT_H
+GYRO_XOUT_H  = config.GYRO_XOUT_H
+GYRO_YOUT_H  = config.GYRO_YOUT_H
+GYRO_ZOUT_H  = config.GYRO_ZOUT_H
+
+bus = smbus.SMBus(1)    # or bus = smbus.SMBus(0) for older version boards
+Device_Address = config.Device_Address   # MPU6050 device address
+
+MPU_Init()
+
+tCycle = config.tCycle
+nCalibrationCycle=config.nCalibrationCycle
+nConvertX=config.nConvertX
+nConvertY=config.nConvertY
+nConvertZ=config.nConvertZ
 
 timeCommand = 0.0
 
