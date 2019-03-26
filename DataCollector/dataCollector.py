@@ -102,7 +102,7 @@ def appendNewMeasure(measurment, measurments_list):
     measure_bool, measure_power, measure_angle, measure_distance = measurment
 
     if(measure_power>=config.QUALITY):
-        if measurments_list[int(measure_angle//config.STEP_ANGLE)] == -1:
+        if measurments_list[int(measure_angle//config.STEP_ANGLE)] == -1 and measure_angle<360:
             measurments_list[int(measure_angle//config.STEP_ANGLE)] = measure_distance
     
     return measurments_list
