@@ -14,9 +14,10 @@
 import time
 import sys
 import serial
-import numpy as np
 import cv2
 from rplidar import RPLidar
+import numpy as np
+import csv
 import config
 
 """
@@ -43,20 +44,21 @@ def turnRight():
 def turnLeft():
     arduino.write(b'a')
 
-def sendCommand(cmd):
-    if(cmd == 'w' ):
-        goForward()
-    elif(cmd == 'a'):
-        turnLeft()
-    elif(cmd == 's' ):
-        stops()
-    elif(cmd=='d'):
-        turnRight()
-    elif(cmd=='x'):
-        goBackwards()
-    else:
-        stops()
-        return 's'
+def sendCommand(cmd, commandSent):
+    if cmd != commandSent:
+        if cmd=='w':
+            goForward()
+        elif cmd == 'a':
+            turnLeft()
+        elif cmd == 's':
+            stops()
+        elif cmd == 'd':
+            turnRight()
+        elif cmd == 'x':
+            goBackwards()
+        else:
+            stops()
+            cmd = 's'
     return cmd
 
 def trackedObjectPosition(frame):
@@ -79,7 +81,7 @@ def trackedObjectPosition(frame):
     cv2.drawContours(frame,conts,-1,(255,0,0),3)
 
     xMiddleRect, yMiddleRect = None, None
-   
+
     if len(conts) > 0:
         #This method return the x,y, weight and height
         x,y,w,h=cv2.boundingRect(conts[0])
@@ -101,10 +103,10 @@ def isFull(measurments_list):
 def appendNewMeasure(measurment, measurments_list):
     measure_bool, measure_power, measure_angle, measure_distance = measurment
 
-    if(measure_power>=config.QUALITY):
-        if measurments_list[int(measure_angle//config.STEP_ANGLE)] == -1 and measure_angle<360:
+    if(measure_power>=config.QUALITY) and measure_angle<360:
+        if measurments_list[int(measure_angle//config.STEP_ANGLE)] == -1:
             measurments_list[int(measure_angle//config.STEP_ANGLE)] = measure_distance
-    
+
     return measurments_list
 
 def main():
@@ -112,13 +114,17 @@ def main():
     measurments_list = [-1 for i in range(0,360//config.STEP_ANGLE)]
     commandSent = 's'
 
+    boolScritturaFile = False
+    csvFile = open("trainingDataset.csv", config.MOD, newline="")
+    writer = csv.writer(csvFile)
+    
+    headerCsvStringList = ["Time","Command","X","Y"] + ["Distance range %d" % i for i in range(0,360//config.STEP_ANGLE)]
+    writer.writerow(headerCsvStringList)
+
     for measurment in lidar.iter_measurments(max_buf_meas = config.MAX_BUF_MEAS):
         #append the measure in the measurment_list if it is in a angle range not yet measured
         measurments_list = appendNewMeasure(measurment, measurments_list)
-        commandSent = 's'
-        print(measurments_list)
         if isFull(measurments_list):
-            print("sono arrivato qui 1")
             _, frame = cap.read()
             #Image
             frame = cv2.resize(frame,(config.WIDTH_SCREEN,config.HEIGHT_SCREEN))
@@ -128,21 +134,26 @@ def main():
             cv2.imshow("YodaCamera",frame)
             #Non blocking input from keyboard
             key = cv2.waitKey(5) & 0xFF
-            #if pressed ESC
+            #If pressed ESC
             if key==27:
                 break
+            elif key==ord('t'):
+                boolScritturaFile = not(boolScritturaFile)
+                print("Scrittura file: %s" % boolScritturaFile)
             elif key>=ord('a') and key<=ord('z'):
-                commandSent = sendCommand(chr(key))
-            else:
-                sendCommand(commandSent)
+                commandSent = sendCommand(chr(key), commandSent)
             #Funzione per salvare in file csv
-
+            if boolScritturaFile:
+                dataList = [time.clock(), commandSent, trackedObjectPosX, trackedObjectPosY] + measurments_list
+                writer.writerow(dataList)
             #Reset the list for new measurerment
             measurments_list = [-1 for i in range(0,360//config.STEP_ANGLE)]
 
     #cap.release()
     #Close output window
     cv2.destroyAllWindows()
+    #Close csv file
+    csvFile.close()
     #Stop RPLidar
     lidar.stop()
     lidar.stop_motor()

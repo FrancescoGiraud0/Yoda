@@ -1,16 +1,17 @@
+MOD = "a"
 #RPLidar configuration
 ARDUINO_PORT_NAME = '/dev/ttyACM0'
 LIDAR_PORT_NAME = '/dev/ttyUSB0'
 MIN_DISTANCE = 200
 MAX_DISTANCE = 400
 MAX_BUF_MEAS = 500
-STEP_ANGLE = 60
+STEP_ANGLE = 30
 QUALITY = 13
 
 #OpenCv configuration
 #dimensioni schermo
 WIDTH_SCREEN= 170
-HEIGHT_SCREEN=110
+HEIGHT_SCREEN = 110
 SENSITIVITY = 10
 
 #MPU configuration
