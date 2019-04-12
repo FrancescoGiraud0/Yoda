@@ -1,0 +1,48 @@
+## **The Project**
+>Y.O.D.A. (Yoda Object Detector and Avoider) is a robot able to **follow colorful object** and **avoid obstacles** while moving.
+>
+>Our teamwork started with the help of the  **IIT (_Italian Institute of Technology_)**, in fact we used part of their guided robot and programs to build an **improved version** of them with other sensors like accelerometer and a **camera**.
+
+## **Aims of the Project**
+>We aimed to create a robot able to **follow** every type of object by his color avoiding objects, but YODA could also be used for **mapping rooms** with the Lidar. 
+>The applications we thought is a **combination** of these two skills, in fact, for a future practical application, we thought about creating a **path** that the robot should follow to reach every corner of a building to **map** it entirely.
+
+## **The Team**
+> Our team is composed of four people:
+    >* Matteo Allemandi: **programming**
+    >* Francesco Giraudo: **programming**
+    >* Nicolò Guerra: **programming and graphics**
+    >* Gabriele Parola: **Graphic and Github**
+
+## **Technologies**
+>We used a programmable board, **Arduino**, to control **motors** and receive data from the **accelerometer**.
+![Arduino][https://github.com/FrancescoGiraud0/Yoda/blob/master/Wiki/img/arduino-icon.png]
+![Accelerometro][https://github.com/FrancescoGiraud0/Yoda/blob/master/Wiki/img/accelerometro.jpg]
+
+>To recognize color received from the camera and make the biggest part of **computations**, we used a single-board computer called **Raspberry Pi**, in particular 3b+ model, because it’s a **small, portable pc** with a micro-processor able to **run an operating system**, we used **Raspbian**, and be mounted on the **YODA** for his small dimensions.
+
+![Raspberry Pi][https://github.com/FrancescoGiraud0/Yoda/blob/master/Wiki/img/rasp.jpg]
+
+## **The Developement of the Project**
+>Firs of all, we **brainstormed**, with our professors and some IIT members, to choose the **best ideas**, then we created the various programs separately.     
+>Once working, we have merged everything in the robot and **optimized programs** so that they could **work together** as best as they could.
+
+>This is the **result**:
+![YODA]LINK]
+
+## **What have we Learned?**
+>We have learned to **work as a team**, in fact we helped each other in all the phases of this project; we also acquired new **skills** in the computer science field, in fact we programmed using an **high level programming language** that we never used before: **Python**.
+
+## **F.A.Q**
+
+#### _How could your robot help society?_
+> As we said before, we thought it could be useful to map area, whether buildings or other environments, perhaps following pre-established paths, delimited by a color that will be tracked and followed by the robot.
+
+#### _How are you going to improve the robot?_
+>Well, for the moment the robot can change direction not so fluently, in fact the most probable change that we’ll cause is a better set of motors and a most elaborated code version to control them.
+
+#### _Is an advanced knowledge of the Python language needed?_
+>Yes, it is necessary to know quite well Python and also the main library that we used (OpenCV); moreover, Arduino is used to control motors, so it is necessary to know also the language of Arduino.
+
+#### _Which was the most difficult part of the project?_
+>We all agree on saying that the most difficult part was the final one, where we combined all the components and perfected them to make them work to the best.
